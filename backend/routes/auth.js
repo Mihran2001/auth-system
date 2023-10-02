@@ -1,15 +1,39 @@
-const express = require("express");
+const express = require('express');
+const passport = require('passport');
 const router = express.Router();
-const User = require("../models/user"); // Import your User model
 
-// Sign-up route
-router.post("/signup", async (req, res) => {
-  // Handle user registration logic here
+// Registration route
+router.get('/register', (req, res) => {
+  res.render('register'); // Create a registration form view
 });
 
-// Sign-in route
-router.post("/signin", async (req, res) => {
-  // Handle user authentication logic here
+router.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+    res.redirect('/login');
+  } catch (error) {
+    res.render('register', { error: 'Registration failed. Please try again.' });
+  }
+});
+
+// Login route
+router.get('/login', (req, res) => {
+  res.render('login'); // Create a login form view
+});
+
+router.post('/login', passport.authenticate('local', {
+  successRedirect: '/profile',
+  failureRedirect: '/login',
+  failureFlash: true
+}));
+
+// Logout route
+router.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
 });
 
 module.exports = router;
